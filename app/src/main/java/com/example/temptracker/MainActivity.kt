@@ -177,8 +177,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     alert(" Next measurement will be done at \n $date"){
                         yesButton {  }
                     }.show()
-                    val serviceId= sql.insertService(unixEpoch)
-                    toast("SERVICE ID $serviceId")
+                    sql.insertService(unixEpoch)
+                    services =sql.findServices()
+                    setSchedule()
+
                 }
                 catch (e:NullPointerException){
                     toast("WHOOPS, NullPointerException :( $e")
@@ -202,8 +204,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     alert(" Next measurement will be done at \n $date"){
                         yesButton {  }
                     }.show()
-                    val serviceId= sql.updateService(unixEpoch)
-                    toast("SERVICE ID $serviceId")
+                    sql.updateService(unixEpoch)
+                    services =sql.findServices()
+                    setSchedule()
+
+
                 }
                 catch (e:NullPointerException){
                     toast("WHOOPS, NullPointerException :( $e")
@@ -253,7 +258,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
-        setSchedule()
+
 
 
         button.setOnClickListener{
@@ -282,14 +287,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onFragmentInteraction(uri: Uri) {
-        toast("FRAAAGMANT")
+
     }
 
-    fun setSchedule(){
+    private fun setSchedule(){
         //schedule a measurement  and then  update service time in the callback
 
         val amgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        amgr.setExact(AlarmManager.RTC_WAKEUP, services[0].last_date*1000, "alarm1", {
+        amgr.setExact(AlarmManager.RTC_WAKEUP, services[0].last_date*1000, "measurement", {
 
            launchMeasurement()
             var normalTime = LocalDateTime.ofInstant(
@@ -299,10 +304,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             sql.updateService(normalTime.atZone(ZoneOffset.UTC).toEpochSecond())
 
         },null)
+        toast("Scheduler set")
     }
 
 
-    fun launchMeasurement(){
+    private fun launchMeasurement(){
         val startIntent = Intent(this, MeasureService::class.java)
         startService(startIntent)
         val h = Handler()
