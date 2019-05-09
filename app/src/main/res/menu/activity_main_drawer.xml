@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:showIn="navigation_view">
+    <item android:title="App features">
+        <menu>
+            <item
+                    android:id="@+id/weather_services"
+                    android:icon="@drawable/ic_baseline_list_24px"
+                    android:title="Added Services"
+                    android:checked="true"/>
+
+            <item
+                    android:id="@+id/records"
+                    android:icon="@drawable/ic_baseline_calendar_today_24px"
+                    android:title="Measurements history"/>
+            <item
+                    android:id="@+id/weather_tracker"
+                    android:icon="@drawable/ic_baseline_calendar_today_24px"
+                    android:title="Infographics"
+                    />
+        </menu>
+    </item>
+
+</menu>
