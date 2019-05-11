@@ -16,16 +16,19 @@ import android.provider.Settings
 import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import org.jetbrains.anko.toast
 
 
 class MeasureService:android.app.Service(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
-    private var temperature: Sensor? = null
-    private var humidity: Sensor? = null
+    lateinit var temperature: Sensor
+    lateinit var humidity: Sensor
     lateinit var sql: MyHelper
     private var notificationManager: NotificationManager? = null
-
+    var  isHumiditySensorPresent=false
+    var  isTemperatureSensorPresent=false
+    var response=""
 
     var tempMes: Float = 0.toFloat()
     var humidMes: Float = 0.toFloat()
@@ -37,6 +40,7 @@ class MeasureService:android.app.Service(), SensorEventListener {
 
         val importance = NotificationManager.IMPORTANCE_LOW
         val channel = NotificationChannel(id, name, importance)
+
 
         channel.description = description
         channel.enableLights(true)
@@ -52,8 +56,8 @@ class MeasureService:android.app.Service(), SensorEventListener {
         sql = MyHelper(this)
         // a particular sensor.
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
-        humidity = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
+
+        toast("service started")
 
         notificationManager =
             getSystemService(
@@ -65,6 +69,23 @@ class MeasureService:android.app.Service(), SensorEventListener {
             "Temperature Measurement Service",
             "Temp tracker measurement service"
         )
+
+        if(sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) != null) {
+            humidity = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
+            isHumiditySensorPresent = true
+
+        }
+        else {
+            isHumiditySensorPresent = false;
+        }
+
+        if(sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE) != null) {
+            temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+            isTemperatureSensorPresent = true;
+        } else {
+
+            isTemperatureSensorPresent = false;
+        }
 
 
     }
@@ -94,6 +115,12 @@ class MeasureService:android.app.Service(), SensorEventListener {
 
 
     override fun onDestroy() {
+        if ((isTemperatureSensorPresent)){
+            response="Temperature: $tempMes Humidity:$humidMes"
+        }
+        else{
+            response="Your device has no sensors needed"
+        }
 
 
         sql.insertMeasurement(tempMes, humidMes, System.currentTimeMillis())
@@ -105,11 +132,12 @@ class MeasureService:android.app.Service(), SensorEventListener {
             channelID
         )
             .setContentTitle("Measurements taken")
-            .setContentText("Temperature: $tempMes Humidity:$humidMes")
+            .setContentText(response)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setChannelId(channelID)
             .build()
         notificationManager?.notify(notificationID, notification)
+
 
 
         //todo something with rescheduling

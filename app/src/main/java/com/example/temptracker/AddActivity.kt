@@ -22,7 +22,7 @@ class AddActivity : AppCompatActivity() {
         val timePicker :TimePicker =  findViewById(R.id.timePicker)
 
         buttonSubmit.setOnClickListener{
-            toast("Submit Pressed")
+
             val hr:Int=timePicker.currentHour
             val min:Int=timePicker.currentMinute
             val bundle=Bundle()
@@ -32,7 +32,7 @@ class AddActivity : AppCompatActivity() {
             val intent = Intent()
             intent.putExtras(bundle)
 
-            toast("$hr hours and $min minutes")
+
             setResult(RESULT_OK,intent)
             finish()
         }

@@ -39,11 +39,11 @@ class MyHelper(ctx: Context) : SQLiteOpenHelper(ctx,"TestDB", null, 1) {
     fun findMeasurements() : List<Measurement> {
         val measurements = mutableListOf<Measurement>()
         val db = getReadableDatabase()
-        val cursor = db.rawQuery ("SELECT * FROM Measurements ORDER BY date_taken", arrayOf<String>("2") )
+        val cursor = db.rawQuery ("SELECT * FROM Measurements ORDER BY date_taken", null )
         if (cursor.moveToFirst()){
             while(!cursor.isAfterLast()){
                 val p = Measurement(cursor.getLong(cursor.getColumnIndex("id")),cursor.getFloat(cursor.getColumnIndex("temperature")),cursor.getFloat(cursor.getColumnIndex("humidity")),
-                    cursor.getLong(cursor.getColumnIndex("service_id")))
+                    cursor.getLong(cursor.getColumnIndex("date_taken")))
                 measurements.add(p)
                 cursor.moveToNext()
             }

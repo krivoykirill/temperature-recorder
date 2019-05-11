@@ -28,6 +28,10 @@ import android.hardware.SensorManager
 import android.os.Handler
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentTransaction
+import com.google.gson.Gson
+import com.jjoe64.graphview.GraphView
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
 import java.lang.IndexOutOfBoundsException
 import java.lang.NullPointerException
 import java.sql.Date
@@ -40,13 +44,11 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 
-
-data class Measurement(val id: Long,val temperature: Float,val humidity: Float,val date_taken:Long)
-
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,StatsFragment.OnFragmentInteractionListener, ServicesFragment.OnFragmentInteractionListener, ListsFragment.OnFragmentInteractionListener {
 
     lateinit var sql:MyHelper
     lateinit var services:List<Service>
+    lateinit var measurements:List<Measurement>
     lateinit var servicesFragment:ServicesFragment
     lateinit var statsFragment:StatsFragment
     private var dateForServicesFrag:String=""
@@ -93,6 +95,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         dateForServicesFrag = getServiceDate()
 
+
         fab.setOnClickListener { view ->
             val intent = Intent(this, AddActivity::class.java)
             startActivityForResult(intent, 1)
@@ -109,20 +112,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         nav_view.setNavigationItemSelectedListener {
             try {
-                val clss = when (it.itemId){
+                when (it.itemId){
                     R.id.weather_services -> {
 
                         val frag = ServicesFragment.newInstance(dateForServicesFrag)
                         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
                     }
-                    R.id.weather_tracker -> {
-                        StatsFragment::class.java
-                        val frag = StatsFragment.newInstance("","")
+                    R.id.records -> {
+                        toast("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                        val frag = StatsFragment.newInstance(Gson().toJson(measurements))
                         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
                     }
-                    R.id.records -> {
-                        ListsFragment::class.java
-                        val frag = StatsFragment.newInstance("","")
+                    R.id.weather_tracker -> {
+                        val frag = MeasurementFragment.newInstance(Gson().toJson(measurements))
                         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
                     }
 
@@ -222,10 +224,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val current = LocalDateTime.now()
         val curHr = current.hour
         println("SASSS"+curHr)
-
         val curMin = current.minute
         var addHr=23-curHr
-
         var addMin=60-curMin
         addHr+=hr
         addMin+=min
@@ -253,18 +253,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         services =sql.findServices()
         dateForServicesFrag = getServiceDate()
         val frag = ServicesFragment.newInstance(dateForServicesFrag)
-
-
-
-
         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
-
-
-
         button.setOnClickListener{
             launchMeasurement()
         }
-
+        measurements=sql.findMeasurements()
     }
 
 
@@ -291,7 +284,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun setSchedule(){
-        //schedule a measurement  and then  update service time in the callback
+        //schedule the next measurement  and then  update service time in the callback
 
         val amgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         amgr.setExact(AlarmManager.RTC_WAKEUP, services[0].last_date*1000, "measurement", {
@@ -301,7 +294,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 Instant.ofEpochMilli(services[0].last_date*1000),
                 ZoneId.of("UTC"))
             normalTime=normalTime.plusDays(1)
-            sql.updateService(normalTime.atZone(ZoneOffset.UTC).toEpochSecond())
+            sql.updateService(normalTime.atZone(ZoneOffset.UTC).toEpochSecond()/1000)
+            setSchedule()
 
         },null)
         toast("Scheduler set")
@@ -317,5 +311,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
         h.postDelayed(r, 5000)
     }
+
 }
 //on start i setSchedule eshe neponjatno, postmotri v nih

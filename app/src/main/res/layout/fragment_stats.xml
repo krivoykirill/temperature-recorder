@@ -4,11 +4,16 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              tools:context=".StatsFragment">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+              android:layout_margin="3dp"
+    android:text="Simply pick a day from the calendar and the app will generate a graph of your measurements until now"/>
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Stats fragment"/>
+    <CalendarView android:layout_width="match_parent" android:layout_height="wrap_content"
+                  android:id="@+id/calendar"
+                  android:layout_marginTop="30dp"
+    ></CalendarView>
+    <com.jjoe64.graphview.GraphView android:layout_width="330dp" android:layout_height="wrap_content"
+                                    android:id="@+id/graphic"
+                                    android:layout_marginTop="350dp"/>
 
 </FrameLayout>

@@ -1,29 +1,29 @@
 package com.example.temptracker
 
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.Instant.ofEpochMilli
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
 
+class Measurement(i:Long,t:Float,h:Float,dt:Long) {
 
-class Service(i: Long,p: Long,ld: Long){
-    val id:Long
-    val period:Long
-    val last_date:Long
+    val id: Long
+    val temperature: Float
+    val humidity: Float
+    val date_taken:Long
 
     init{
         id=i
-        period=p
-        last_date=ld
+        temperature=t
+        humidity=h
+        date_taken=dt
+
 
     }
     fun getNormalDate():String{
-        println("DATE ====== "+last_date)
+        println("DATE ====== "+date_taken)
         val normalTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(last_date*1000),
+            Instant.ofEpochMilli(date_taken),
             ZoneId.of("UTC"))
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
@@ -33,7 +33,7 @@ class Service(i: Long,p: Long,ld: Long){
     }
     fun getLocalDateTime():LocalDateTime {
         val normalTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(last_date*1000),
+            Instant.ofEpochMilli(date_taken*1000),
             ZoneId.of("UTC")
         )
         return normalTime

@@ -7,12 +7,16 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CalendarView
+import android.widget.Toast
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.jjoe64.graphview.GraphView
+import com.jjoe64.graphview.series.DataPoint
+import com.jjoe64.graphview.series.LineGraphSeries
+import java.time.LocalDateTime
 
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
 /**
  * A simple [Fragment] subclass.
@@ -23,18 +27,26 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  *
  */
+private const val ARG_PARAMETER = "json"
 class StatsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    lateinit var graph:GraphView
+    lateinit var measurements:List<Measurement>
+    lateinit var json:String
     private var listener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("STATSFRAGMENT ***********")
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+            json = it.getString(ARG_PARAMETER)
+
         }
+        val listType = object : TypeToken<List<Measurement>>() {
+
+        }.type
+        println(json)
+        measurements= Gson().fromJson(json, listType)
     }
 
     override fun onCreateView(
@@ -42,7 +54,19 @@ class StatsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_stats, container, false)
+        val v =inflater.inflate(R.layout.fragment_stats, container, false)
+        val calendar = v.findViewById<CalendarView>(R.id.calendar)
+        graph=v.findViewById(R.id.graphic)
+        calendar.setOnDateChangeListener{
+                view, year, month, dayOfMonth ->
+            // Note that months are indexed from 0. So, 0 means January, 1 means february, 2 means march etc.
+            val msg = "Selected date is " + dayOfMonth + "/" + (month + 1) + "/" + year
+            //Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
+            initGraphFromDate(year,month,dayOfMonth,graph)
+
+
+        }
+        return v
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -81,22 +105,31 @@ class StatsFragment : Fragment() {
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment StatsFragment.
-         */
-        // TODO: Rename and change types and number of parameters
+
+        // TODO: Customize parameter argument names
+        const val ARG_COLUMN_COUNT = "column-count"
+
+        // TODO: Customize parameter initialization
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            StatsFragment().apply {
+        fun newInstance(jsonObj:String) =
+            MeasurementFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putString(ARG_PARAMETER, jsonObj)
+
                 }
             }
+    }
+    fun initGraphFromDate(y:Int, m:Int, d:Int,graph: GraphView){
+        val startPoint: LocalDateTime = LocalDateTime.of(y,m+1,d,0,0)
+        val  series: LineGraphSeries<DataPoint> = LineGraphSeries<DataPoint>()
+        for (measurement in measurements){
+            val curPoint = measurement.getLocalDateTime()
+            if(startPoint.compareTo(curPoint)==1){
+                val x = measurement.date_taken.toDouble()
+                val y = measurement.temperature.toDouble()
+                series.appendData(DataPoint(x,y),true,measurements.count())
+            }
+        }
+
     }
 }
