@@ -44,7 +44,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,StatsFragment.OnFragmentInteractionListener, ServicesFragment.OnFragmentInteractionListener, ListsFragment.OnFragmentInteractionListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,StatsFragment.OnFragmentInteractionListener, ServicesFragment.OnFragmentInteractionListener, MeasurementFragment.OnFragmentInteractionListener {
 
     lateinit var sql:MyHelper
     lateinit var services:List<Service>
@@ -114,16 +114,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             try {
                 when (it.itemId){
                     R.id.weather_services -> {
-
                         val frag = ServicesFragment.newInstance(dateForServicesFrag)
                         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
                     }
-                    R.id.records -> {
-                        toast("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                    R.id.weather_tracker -> {
+                        toast("stats frag")
+                        measurements=sql.findMeasurements()
                         val frag = StatsFragment.newInstance(Gson().toJson(measurements))
                         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
                     }
-                    R.id.weather_tracker -> {
+                    R.id.records -> {
+                        measurements=sql.findMeasurements()
                         val frag = MeasurementFragment.newInstance(Gson().toJson(measurements))
                         supportFragmentManager.beginTransaction().replace(R.id.frameLayout1, frag).commit()
                     }
@@ -290,11 +291,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         amgr.setExact(AlarmManager.RTC_WAKEUP, services[0].last_date*1000, "measurement", {
 
            launchMeasurement()
-            var normalTime = LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(services[0].last_date*1000),
-                ZoneId.of("UTC"))
-            normalTime=normalTime.plusDays(1)
-            sql.updateService(normalTime.atZone(ZoneOffset.UTC).toEpochSecond()/1000)
             setSchedule()
 
         },null)

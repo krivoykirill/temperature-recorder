@@ -1,6 +1,7 @@
 package com.example.temptracker
 
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.GridLayoutManager
@@ -38,7 +39,7 @@ class MeasurementFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        println("MEASUREMENT GRAGMENT")
         arguments?.let {
             json = it.getString(ARG_PARAMETER)
 
@@ -80,6 +81,10 @@ class MeasurementFragment : Fragment() {
 
             adapter = ListAdapter(measurements)
         }
+    }
+    interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        fun onFragmentInteraction(uri: Uri)
     }
 
 

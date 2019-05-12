@@ -33,7 +33,7 @@ class Service(i: Long,p: Long,ld: Long){
     }
     fun getLocalDateTime():LocalDateTime {
         val normalTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(last_date*1000),
+            Instant.ofEpochMilli(last_date),
             ZoneId.of("UTC")
         )
         return normalTime

@@ -1,6 +1,7 @@
 package com.example.temptracker
 
 import android.content.Context
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -12,9 +13,16 @@ import android.widget.Toast
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.jjoe64.graphview.GraphView
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneId.systemDefault
+import java.util.*
+
+import android.text.method.TextKeyListener.clear
+
 
 
 
@@ -56,12 +64,14 @@ class StatsFragment : Fragment() {
         // Inflate the layout for this fragment
         val v =inflater.inflate(R.layout.fragment_stats, container, false)
         val calendar = v.findViewById<CalendarView>(R.id.calendar)
-        graph=v.findViewById(R.id.graphic)
+        graph=v.findViewById(R.id.graphic) as GraphView
+
+
         calendar.setOnDateChangeListener{
                 view, year, month, dayOfMonth ->
             // Note that months are indexed from 0. So, 0 means January, 1 means february, 2 means march etc.
             val msg = "Selected date is " + dayOfMonth + "/" + (month + 1) + "/" + year
-            //Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
             initGraphFromDate(year,month,dayOfMonth,graph)
 
 
@@ -112,24 +122,55 @@ class StatsFragment : Fragment() {
         // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(jsonObj:String) =
-            MeasurementFragment().apply {
+            StatsFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_PARAMETER, jsonObj)
 
                 }
             }
     }
+
+    fun localDateTimeToDate(localDateTime: LocalDateTime): Date {
+        val calendar = Calendar.getInstance()
+        calendar.clear()
+        calendar.set(
+            localDateTime.year, localDateTime.monthValue - 1, localDateTime.dayOfMonth,
+            localDateTime.hour, localDateTime.minute, localDateTime.second
+        )
+        return calendar.time
+    }
+
     fun initGraphFromDate(y:Int, m:Int, d:Int,graph: GraphView){
+        graph.removeAllSeries()
+        println("INIT GRAPH")
         val startPoint: LocalDateTime = LocalDateTime.of(y,m+1,d,0,0)
-        val  series: LineGraphSeries<DataPoint> = LineGraphSeries<DataPoint>()
+        val  temperature: LineGraphSeries<DataPoint> = LineGraphSeries<DataPoint>()
+        val  humidity: LineGraphSeries<DataPoint> = LineGraphSeries<DataPoint>()
         for (measurement in measurements){
             val curPoint = measurement.getLocalDateTime()
-            if(startPoint.compareTo(curPoint)==1){
+
+
+            if(curPoint.isAfter(startPoint)==true){
                 val x = measurement.date_taken.toDouble()
                 val y = measurement.temperature.toDouble()
-                series.appendData(DataPoint(x,y),true,measurements.count())
+                println("MEASUREMENT -      x: $x y: $y  id: ${measurement.id}")
+                temperature.appendData(DataPoint(x,y),true,measurements.count())
+                val x1 = measurement.date_taken.toDouble()
+                val y1 = measurement.humidity.toDouble()
+                humidity.appendData(DataPoint(x1,y1),true,measurements.count())
+
+            }
+            else {
             }
         }
+        temperature.setThickness(8)
+        temperature.setColor(Color.RED)
+        graph.addSeries(temperature)
+
+        humidity.setThickness(3)
+        humidity.setColor(Color.BLUE)
+        graph.addSeries(humidity)
+
 
     }
 }

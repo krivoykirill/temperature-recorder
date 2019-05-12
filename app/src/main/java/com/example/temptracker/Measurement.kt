@@ -33,7 +33,7 @@ class Measurement(i:Long,t:Float,h:Float,dt:Long) {
     }
     fun getLocalDateTime():LocalDateTime {
         val normalTime = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(date_taken*1000),
+            Instant.ofEpochMilli(date_taken),
             ZoneId.of("UTC")
         )
         return normalTime
