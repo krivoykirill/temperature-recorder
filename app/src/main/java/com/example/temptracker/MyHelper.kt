@@ -21,6 +21,7 @@ class MyHelper(ctx: Context) : SQLiteOpenHelper(ctx,"TestDB", null, 1) {
         db.execSQL ("DROP TABLE IF EXISTS Measurements")
         onCreate(db)
     }
+
     fun findServices() : List<Service> {
         val services = mutableListOf<Service>()
         val db = getReadableDatabase()

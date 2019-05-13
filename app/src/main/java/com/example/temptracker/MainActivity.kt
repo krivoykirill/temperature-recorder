@@ -55,15 +55,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var receiver:BroadcastReceiver
 
 
+    //in the MainActivity:
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sql= MyHelper(this)
         services =sql.findServices()
-
- //to do permissions *******************************************************
-
-
         if(services.count()<1){
             val intent = Intent(this, AddActivity::class.java)
             val bundle = Bundle()
@@ -71,28 +68,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             intent.putExtras(bundle)
             startActivityForResult(intent,0)
         }
-
-
-
         setContentView(R.layout.activity_main)
         val toolbar: Toolbar =findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-
-
-        /*
-        val fragManager : FragmentManager = supportFragmentManager
-        val fragTran:FragmentTransaction = fragManager.beginTransaction()
-
-        servicesFragment = ServicesFragment()
-
-        val bundl=Bundle()
-        bundl.putString("date",dateForServicesFrag)
-        servicesFragment.setArguments(bundl)
-
-        fragTran.add(R.id.frameLayout1,servicesFragment)
-        fragTran.commit()*/
-
-
         dateForServicesFrag = getServiceDate()
 
 
@@ -171,26 +149,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     val extras:Bundle?=data!!.getExtras()
                     val hr = extras!!.getInt("com.addactivity.hr")
                     val min = extras!!.getInt("com.addactivity.min")
-
                     val unixEpoch = getNextUnixDate(hr,min)
-
                     val stamp = Timestamp(unixEpoch*1000)
                     val date = Date(stamp.time).toGMTString()
-
                     alert(" Next measurement will be done at \n $date"){
                         yesButton {  }
                     }.show()
                     sql.insertService(unixEpoch)
                     services =sql.findServices()
                     setSchedule()
-
                 }
                 catch (e:NullPointerException){
                     toast("WHOOPS, NullPointerException :( $e")
                 }
             }
-
-
         }
         else if (requestCode==1){
             if (resultCode==RESULT_OK){
@@ -198,20 +170,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     val extras:Bundle?=data!!.getExtras()
                     val hr = extras!!.getInt("com.addactivity.hr")
                     val min = extras!!.getInt("com.addactivity.min")
-
                     val unixEpoch = this.getNextUnixDate(hr,min)
-
                     val stamp = Timestamp(unixEpoch*1000)
                     val date = Date(stamp.time).toGMTString()
-
                     alert(" Next measurement will be done at \n $date"){
                         yesButton {  }
                     }.show()
                     sql.updateService(unixEpoch)
                     services =sql.findServices()
                     setSchedule()
-
-
                 }
                 catch (e:NullPointerException){
                     toast("WHOOPS, NullPointerException :( $e")
@@ -224,7 +191,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     fun getNextUnixDate(hr:Int,min:Int):Long {
         val current = LocalDateTime.now()
         val curHr = current.hour
-        println("SASSS"+curHr)
         val curMin = current.minute
         var addHr=23-curHr
         var addMin=60-curMin
@@ -289,10 +255,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         val amgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         amgr.setExact(AlarmManager.RTC_WAKEUP, services[0].last_date*1000, "measurement", {
-
            launchMeasurement()
             setSchedule()
-
         },null)
         toast("Scheduler set")
     }

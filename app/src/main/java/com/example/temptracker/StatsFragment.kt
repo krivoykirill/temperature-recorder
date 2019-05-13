@@ -22,8 +22,7 @@ import java.time.ZoneId.systemDefault
 import java.util.*
 
 import android.text.method.TextKeyListener.clear
-
-
+import com.jjoe64.graphview.LegendRenderer
 
 
 /**
@@ -37,7 +36,6 @@ import android.text.method.TextKeyListener.clear
  */
 private const val ARG_PARAMETER = "json"
 class StatsFragment : Fragment() {
-
     lateinit var graph:GraphView
     lateinit var measurements:List<Measurement>
     lateinit var json:String
@@ -50,40 +48,25 @@ class StatsFragment : Fragment() {
             json = it.getString(ARG_PARAMETER)
 
         }
-        val listType = object : TypeToken<List<Measurement>>() {
-
-        }.type
+        val listType = object : TypeToken<List<Measurement>>() {}.type
         println(json)
         measurements= Gson().fromJson(json, listType)
     }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val v =inflater.inflate(R.layout.fragment_stats, container, false)
         val calendar = v.findViewById<CalendarView>(R.id.calendar)
         graph=v.findViewById(R.id.graphic) as GraphView
-
-
         calendar.setOnDateChangeListener{
                 view, year, month, dayOfMonth ->
-            // Note that months are indexed from 0. So, 0 means January, 1 means february, 2 means march etc.
             val msg = "Selected date is " + dayOfMonth + "/" + (month + 1) + "/" + year
             Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
             initGraphFromDate(year,month,dayOfMonth,graph)
-
-
         }
         return v
     }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is OnFragmentInteractionListener) {
@@ -92,12 +75,10 @@ class StatsFragment : Fragment() {
             throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
     }
-
     override fun onDetach() {
         super.onDetach()
         listener = null
     }
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -110,16 +91,10 @@ class StatsFragment : Fragment() {
      * for more information.
      */
     interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
+
         fun onFragmentInteraction(uri: Uri)
     }
-
     companion object {
-
-        // TODO: Customize parameter argument names
-        const val ARG_COLUMN_COUNT = "column-count"
-
-        // TODO: Customize parameter initialization
         @JvmStatic
         fun newInstance(jsonObj:String) =
             StatsFragment().apply {
@@ -139,17 +114,26 @@ class StatsFragment : Fragment() {
         )
         return calendar.time
     }
-
     fun initGraphFromDate(y:Int, m:Int, d:Int,graph: GraphView){
         graph.removeAllSeries()
         println("INIT GRAPH")
         val startPoint: LocalDateTime = LocalDateTime.of(y,m+1,d,0,0)
         val  temperature: LineGraphSeries<DataPoint> = LineGraphSeries<DataPoint>()
         val  humidity: LineGraphSeries<DataPoint> = LineGraphSeries<DataPoint>()
+        // set manual X bounds
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinY(-100.toDouble());
+        graph.getViewport().setMaxY(100.toDouble());
+
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(measurements[0].date_taken.toDouble());
+        graph.getViewport().setMaxX(measurements[measurements.count()-1].date_taken.toDouble());
+
+        // enable scaling and scrolling
+        graph.getViewport().setScalable(true);
+        graph.getViewport().setScalableY(true);
         for (measurement in measurements){
             val curPoint = measurement.getLocalDateTime()
-
-
             if(curPoint.isAfter(startPoint)==true){
                 val x = measurement.date_taken.toDouble()
                 val y = measurement.temperature.toDouble()
@@ -158,19 +142,21 @@ class StatsFragment : Fragment() {
                 val x1 = measurement.date_taken.toDouble()
                 val y1 = measurement.humidity.toDouble()
                 humidity.appendData(DataPoint(x1,y1),true,measurements.count())
-
             }
             else {
             }
         }
+        temperature.setTitle("Temperature")
+        graph.getLegendRenderer().setVisible(true)
+        graph.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP)
+
         temperature.setThickness(8)
         temperature.setColor(Color.RED)
         graph.addSeries(temperature)
 
         humidity.setThickness(3)
+        humidity.setTitle("Humidity")
         humidity.setColor(Color.BLUE)
         graph.addSeries(humidity)
-
-
     }
 }

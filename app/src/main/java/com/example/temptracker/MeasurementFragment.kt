@@ -27,31 +27,18 @@ import com.google.gson.reflect.TypeToken
 private const val ARG_PARAMETER = "json"
 
 class MeasurementFragment : Fragment() {
-
-    // TODO: Customize parameters
-    private var columnCount = 1
-
-
-    var mAdapter: ListAdapter? = null
+    var mAdater: ListAdapter? = null
     lateinit var measurements:List<Measurement>
     lateinit var json:String
     private var j =""
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        println("MEASUREMENT GRAGMENT")
         arguments?.let {
             json = it.getString(ARG_PARAMETER)
-
         }
-        val listType = object : TypeToken<List<Measurement>>() {
-
-        }.type
-        println(json)
+        val listType = object : TypeToken<List<Measurement>>(){}.type
         measurements=Gson().fromJson(json, listType)
     }
-
-
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -59,16 +46,13 @@ class MeasurementFragment : Fragment() {
         val view:View=inflater.inflate(R.layout.fragment_measurement_list, container, false)
         mListRecyclerView = view.findViewById(R.id.list);
         mListRecyclerView.setLayoutManager(LinearLayoutManager(getActivity()));
-
         // only create and set a new adapter if there isn't already one
-        if (mAdapter == null) {
+        if (mAdater == null) {
             val mAdapter = ListAdapter(measurements);
             mListRecyclerView.setAdapter(mAdapter);
         }
         return view
     }
-
-
     // populate the views now that the layout has been inflated
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

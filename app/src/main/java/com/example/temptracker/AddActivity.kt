@@ -28,20 +28,12 @@ class AddActivity : AppCompatActivity() {
             val bundle=Bundle()
             bundle.putInt("com.addactivity.hr",hr)
             bundle.putInt("com.addactivity.min",min)
-
             val intent = Intent()
             intent.putExtras(bundle)
-
-
             setResult(RESULT_OK,intent)
             finish()
         }
-
-
-
-
     }
-
     override fun onBackPressed() {
         toast("Please set time and press submit")
     }

@@ -24,7 +24,6 @@ import java.time.ZoneOffset
 
 
 class MeasureService:android.app.Service(), SensorEventListener {
-
     private lateinit var sensorManager: SensorManager
     lateinit var services:List<Service>
     lateinit var temperature: Sensor
@@ -35,62 +34,43 @@ class MeasureService:android.app.Service(), SensorEventListener {
     var  isTemperatureSensorPresent=false
     var response=""
     var noSensorString=""
-
     var tempMes: Float = 0.toFloat()
     var humidMes: Float = 0.toFloat()
-
     private fun createNotificationChannel(
         id: String, name: String,
         description: String
     ) {
-
-        val importance = NotificationManager.IMPORTANCE_LOW
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
         val channel = NotificationChannel(id, name, importance)
-
-
         channel.description = description
         channel.enableLights(true)
         channel.lightColor = Color.RED
-        channel.enableVibration(true)
-        channel.vibrationPattern =
-            longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
         notificationManager?.createNotificationChannel(channel)
     }
-
     override fun onCreate() {
         super.onCreate()
         sql = MyHelper(this)
         // a particular sensor.
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
         toast("service started")
-
         notificationManager =
             getSystemService(
                 Context.NOTIFICATION_SERVICE
             ) as NotificationManager
-
         createNotificationChannel(
             "com.example.temptracker.service",
             "Temperature Measurement Service",
             "Temp tracker measurement service"
         )
-
-
-
-
         if(sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) != null) {
             humidity = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
             sensorManager.registerListener(this,humidity,SensorManager.SENSOR_DELAY_NORMAL)
             isHumiditySensorPresent = true
-
-
         }
         else {
             noSensorString+=" HumiditySensor "
             isHumiditySensorPresent = false;
         }
-
         if(sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE) != null) {
             temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
             sensorManager.registerListener(this,temperature,SensorManager.SENSOR_DELAY_NORMAL)
@@ -100,55 +80,35 @@ class MeasureService:android.app.Service(), SensorEventListener {
             noSensorString+=" TemperatureSensor "
             isTemperatureSensorPresent = false;
         }
-
-
     }
-
-
     override fun onBind(intent: Intent?): IBinder? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         return null
     }
-
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        // Do something here if sensor accuracy changes.
     }
-
     override fun onSensorChanged(event: SensorEvent) {
-
-        // Do something with this sensor data.
-
         if (event.sensor == temperature) {
             tempMes = event.values[0]
         } else if (event.sensor == humidity) {
             humidMes = event.values[0]
         }
     }
-
-
-
-
     override fun onDestroy() {
-
         if ((isTemperatureSensorPresent&&isHumiditySensorPresent)){
             response="Temperature: $tempMes Humidity:$humidMes $noSensorString"
         }
         else{
             response="Following sensors not available: $noSensorString"
         }
-
         services=sql.findServices()
-
         sql.insertMeasurement(tempMes, humidMes, System.currentTimeMillis())
         var normalTime = LocalDateTime.ofInstant(
             Instant.ofEpochMilli(services[0].last_date*1000),
             ZoneId.of("UTC"))
         normalTime=normalTime.plusDays(1)
         sql.updateService(normalTime.atZone(ZoneOffset.UTC).toEpochSecond())
-
         val notificationID = 101
         val channelID = "com.example.temptracker.service"
-
         val notification = Notification.Builder(
             this@MeasureService,
             channelID
@@ -159,18 +119,11 @@ class MeasureService:android.app.Service(), SensorEventListener {
             .setChannelId(channelID)
             .build()
         notificationManager?.notify(notificationID, notification)
-
-
         if (::temperature.isInitialized){
             sensorManager.unregisterListener(this,temperature)
         }
         if (::humidity.isInitialized){
             sensorManager.unregisterListener(this,humidity)
         }
-
-
-
-
-
     }
 }
